@@ -1,0 +1,430 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>               
+ <li><a href="index2.html" target="_blank">返回官网</a></li>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>交互式黑客终端</title>
+    <style>
+        body {
+            background-color: #000;
+            color: #0f0;
+            font-family: 'Courier New', monospace;
+            margin: 0;
+            padding: 10px;
+            overflow: hidden;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        #header {
+            display: flex;
+            justify-content: space-between;
+            padding: 5px 10px;
+            border-bottom: 1px solid #333;
+            margin-bottom: 10px;
+        }
+        #terminal {
+            flex-grow: 1;
+            white-space: pre-wrap;
+            line-height: 1.3;
+            font-size: 14px;
+            overflow-y: auto;
+            padding: 5px;
+        }
+        #input-line {
+            display: flex;
+            margin-top: 5px;
+        }
+        #prompt {
+            margin-right: 5px;
+        }
+        #command-input {
+            flex-grow: 1;
+            background: transparent;
+            border: none;
+            color: #0f0;
+            font-family: inherit;
+            font-size: inherit;
+            outline: none;
+            caret-color: #0f0;
+        }
+        .cursor {
+            animation: blink 1s infinite;
+        }
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0; }
+        }
+        .success { color: #0f0; }
+        .error { color: #f00; }
+        .warning { color: #ff0; }
+        .system { color: #0ff; }
+        .file { color: #00ffff; }
+        .directory { color: #87ceeb; }
+        .hidden { display: none; }
+    </style>
+</head>
+<body>
+    <div id="header">
+        <div>root termux@Kevin</div>
+        <div id="time-display"></div>
+    </div>
+    <div id="terminal"></div>
+    <div id="input-line">
+        <span id="prompt">root@Kevin></span>
+        <input type="text" id="command-input" autofocus>
+        <span id="cursor" class="cursor">_</span>
+    </div>
+
+    <script>
+        const terminal = document.getElementById('terminal');
+        const commandInput = document.getElementById('command-input');
+        const timeDisplay = document.getElementById('time-display');
+        const cursor = document.getElementById('cursor');
+        
+        // 初始化终端
+        let commandHistory = [];
+        let historyIndex = -1;
+        
+        // 更新时间的函数
+        function updateTime() {
+            const now = new Date();
+            const timeString = now.toLocaleTimeString();
+            timeDisplay.textContent = timeString;
+        }
+        
+        // 每秒钟更新时间
+        setInterval(updateTime, 1000);
+        updateTime(); // 立即显示时间
+        
+        // 欢迎信息
+        function printWelcome() {
+            const now = new Date();
+            const welcomeMsg = 
+`Turmux 5.10.0-kali7-amd64 #1 SMP Debian 5.10.28-kaliLinux x64
+
+欢迎回来
+当前时间: ${now.toLocaleString()}
+
+输入"help"获取可用命令列表
+`;
+            addToTerminal(welcomeMsg);
+        }
+        
+        // 添加到终端显示
+        function addToTerminal(text, className = '') {
+            const div = document.createElement('div');
+            if (className) div.className = className;
+            div.textContent = text;
+            terminal.appendChild(div);
+            terminal.scrollTop = terminal.scrollHeight;
+        }
+        
+        // 命令处理
+        function processCommand(cmd) {
+            if (!cmd.trim()) return;
+            
+            // 添加到历史记录
+            commandHistory.push(cmd);
+            historyIndex = commandHistory.length;
+            
+            // 显示输入的命令
+            addToTerminal(`root@hackterm:~# ${cmd}`);
+            
+            // 处理命令
+            const args = cmd.trim().split(/\s+/);
+            const command = args[0].toLowerCase();
+            
+            switch(command) {
+                case 'help':
+                    addToTerminal(
+`可用命令:
+help        - 显示帮助信息
+clear       - 清空终端
+time        - 显示当前时间
+whoami      - 显示当前用户
+ls          - 列出文件
+cat [文件]  - 查看文件内容
+scan        - 模拟网络扫描
+hack        - 模拟黑客攻击
+exit        - 退出终端`);
+                    break;
+                    
+                case 'clear':
+                    terminal.innerHTML = '';
+                    break;
+                    
+                case 'time':
+                    addToTerminal(new Date().toLocaleString());
+                    break;
+                    
+                case 'whoami':
+                    addToTerminal('root');
+                    break;
+                    
+                case 'ls':
+                    simulateTyping(`总用量 24K
+drwxr-xr-x 2 root root 4.0K 5月  15 12:34 <span class="directory">bin</span>
+drwxr-xr-x 3 root root 4.0K 5月  15 12:34 <span class="directory">etc</span>
+drwxr-xr-x 2 root root 4.0K 5月  15 12:34 <span class="directory">home</span>
+-rw-r--r-- 1 root root  12K 5月  15 12:34 <span class="file">passwords.txt</span>
+-rw-r--r-- 1 root root 1.2K 5月  15 12:34 <span class="file">config.ini</span>
+drwxr-xr-x 2 root root 4.0K 5月  15 12:34 <span class="directory">logs</span>`);
+                    break;
+                    
+                case 'cat':
+                    if (args.length < 2) {
+                        addToTerminal('用法: cat [文件名]', 'error');
+                    } else {
+                        const file = args[1];
+                        if (file === 'passwords.txt') {
+                            simulateTyping(`admin:admin123
+root:toor
+user:password123
+guest:guest
+backup:backup123`);
+                        } else if (file === 'config.ini') {
+                            simulateTyping(`[database]
+host=192.168.1.100
+port=3306
+user=dbadmin
+password=dbpass123
+
+[server]
+ip=192.168.1.1
+port=8080
+ssl_enabled=true`);
+                        } else {
+                            addToTerminal(`cat: ${file}: 没有那个文件或目录`, 'error');
+                        }
+                    }
+                    break;
+                    
+                case 'scan':
+                    simulateTyping(`正在扫描网络...
+发现50个活动主机:
+192.168.1.1 - 路由器
+192.168.1.100 - 数据库服务器
+192.168.1.150 - 文件服务器
+192.168.1.200 - 工作站
+192.168.1.254 - 打印机
+192.168.1.1 - 路由器
+192.168.1.2 - 传奇电子教室
+192.168.1.3 - 服务器
+192.168.1.4 - 笔记本电脑
+192.168.1.5 - 桌面电脑
+192.168.1.6 - 打印机
+192.168.1.7 - 智能手机
+192.168.1.8 - 平板电脑
+192.168.1.9 - 网络摄像头
+192.168.1.10 - 智能电视
+192.168.1.11 - 游戏机
+192.168.1.12 - 智能音箱
+192.168.1.13 - 智能门锁
+192.168.1.14 - 智能插座
+192.168.1.15 - 智能冰箱
+192.168.1.16 - 智能洗衣机
+192.168.1.17 - 智能空调
+192.168.1.18 - 智能扫地机器人
+192.168.1.19 - 智能烟雾报警器
+192.168.1.20 - 智能水表
+192.168.1.21 - 智能电表
+192.168.1.22 - 智能燃气表
+192.168.1.23 - 智能体重秤
+192.168.1.24 - 智能血压计
+192.168.1.25 - 智能血糖仪
+192.168.1.26 - 智能手环
+192.168.1.27 - 智能手表
+192.168.1.28 - 智能健康监测设备
+192.168.1.29 - 智能睡眠监测设备
+192.168.1.30 - 智能空气净化器
+192.168.1.31 - 智能加湿器
+192.168.1.32 - 智能除湿器
+192.168.1.33 - 智能热水器
+192.168.1.34 - 智能微波炉
+192.168.1.35 - 智能烤箱
+192.168.1.36 - 智能咖啡机
+192.168.1.37 - 智能电饭煲
+192.168.1.38 - 智能吸尘器
+192.168.1.39 - 智能拖地机
+192.168.1.40 - 智能窗帘
+192.168.1.41 - 智能灯泡
+192.168.1.42 - 智能台灯
+192.168.1.43 - 智能夜灯
+192.168.1.44 - 智能鱼缸
+192.168.1.45 - 智能花盆
+192.168.1.46 - 智能宠物喂食器
+192.168.1.47 - 智能宠物追踪器
+192.168.1.48 - 智能婴儿监视器
+192.168.1.49 - 智能老人看护设备
+192.168.1.50 - 智能健身器材
+192.168.2.1 - 学校路由器
+192.168.2.2 - 学校服务器
+192.168.2.3 - 教师办公电脑
+192.168.2.4 - 学生笔记本电脑
+192.168.2.5 - 教室投影仪
+192.168.2.6 - 实验室电脑
+192.168.2.7 - 图书馆自助打印机
+192.168.2.8 - 校园监控摄像头
+192.168.2.9 - 校园广播系统
+192.168.2.10 - 教务管理系统服务器
+192.168.2.11 - 学生信息管理系统服务器
+192.168.2.12 - 校园网关
+192.168.2.13 - 校园邮件服务器
+192.168.2.14 - 校园论坛服务器
+192.168.2.15 - 校园资源管理系统
+192.168.2.16 - 教室智能黑板
+192.168.2.17 - 实验室智能设备
+192.168.2.18 - 校园智能门禁系统
+192.168.2.19 - 校园智能停车系统
+192.168.2.20 - 校园智能照明系统
+192.168.2.21 - 校园智能灌溉系统
+192.168.2.22 - 校园智能能源管理系统
+192.168.2.23 - 校园智能安防系统
+192.168.2.24 - 校园智能考勤系统
+192.168.2.25 - 校园智能图书馆系统
+192.168.2.26 - 校园智能食堂系统
+192.168.2.27 - 校园智能宿舍管理系统
+192.168.2.28 - 校园智能实验室管理系统
+192.168.2.29 - 校园智能教室管理系统
+192.168.2.30 - 校园智能体育设施管理系统
+192.168.2.31 - 校园智能艺术设施管理系统
+192.168.2.32 - 校园智能音乐设施管理系统
+192.168.2.33 - 校园智能舞蹈设施管理系统
+192.168.2.34 - 校园智能戏剧设施管理系统
+192.168.2.35 - 校园智能摄影设施管理系统
+192.168.2.36 - 校园智能设计设施管理系统
+192.168.2.37 - 校园智能工程设施管理系统
+192.168.2.38 - 校园智能科研设施管理系统
+192.168.2.39 - 校园智能医疗设施管理系统
+192.168.2.40 - 校园智能心理咨询系统
+192.168.2.41 - 校园智能职业指导系统
+192.168.2.42 - 校园智能创业指导系统
+192.168.2.43 - 校园智能国际交流系统
+192.168.2.44 - 校园智能校友管理系统
+192.168.2.45 - 校园智能捐赠管理系统
+192.168.2.46 - 校园智能活动管理系统
+
+
+扫描完成.`);
+                    break;
+                    
+                case 'hack':
+                    simulateHack();
+                    break;
+                    
+                case 'exit':
+                    addToTerminal('正在注销...', 'system');
+                    setTimeout(() => {
+                        terminal.innerHTML = '';
+                        printWelcome();
+                    }, 1000);
+                    break;
+                    
+                default:
+                    addToTerminal(`${command}: 未找到命令`, 'error');
+                    addToTerminal('输入"help"获取可用命令列表', 'warning');
+            }
+        }
+        
+        // 模拟打字效果
+        function simulateTyping(text, speed = 20) {
+            const lines = text.split('\n');
+            let currentLine = 0;
+            let currentChar = 0;
+            let output = '';
+            
+            function type() {
+                if (currentLine < lines.length) {
+                    if (currentChar < lines[currentLine].length) {
+                        output += lines[currentLine][currentChar];
+                        const tempDiv = document.createElement('div');
+                        tempDiv.innerHTML = output;
+                        terminal.appendChild(tempDiv);
+                        terminal.scrollTop = terminal.scrollHeight;
+                        currentChar++;
+                        setTimeout(type, speed + Math.random() * 50);
+                    } else {
+                        output += '\n';
+                        currentLine++;
+                        currentChar = 0;
+                        setTimeout(type, 50);
+                    }
+                }
+            }
+            
+            type();
+        }
+        
+        // 模拟黑客攻击
+        function simulateHack() {
+            const steps = [
+                {text: '正在初始化攻击序列...', delay: 800},
+                {text: '扫描目标系统漏洞...', delay: 1200},
+                {text: '发现漏洞: CVE-2023-1234 (严重程度: 高危)', delay: 1000},
+                {text: '正在利用漏洞...', delay: 1500},
+                {text: '绕过安全防护...', delay: 1000},
+                {text: '获取管理员权限...', delay: 2000},
+                {text: '成功! 已获得root访问权限', class: 'success', delay: 500},
+                {text: '正在下载敏感数据...', delay: 1800},
+                {text: '数据传输完成 (12.4 MB)', delay: 800},
+                {text: '正在清除日志...', delay: 1000},
+                {text: '所有操作痕迹已清除', class: 'success', delay: 500},
+                {text: '攻击序列完成', class: 'system', delay: 0}
+            ];
+            
+            let index = 0;
+            
+            function nextStep() {
+                if (index < steps.length) {
+                    const step = steps[index];
+                    addToTerminal(step.text, step.class || '');
+                    index++;
+                    setTimeout(nextStep, step.delay);
+                }
+            }
+            
+            nextStep();
+        }
+        
+        // 事件监听
+        commandInput.addEventListener('keydown', (e) => {
+            // 上下箭头浏览历史
+            if (e.key === 'ArrowUp') {
+                e.preventDefault();
+                if (commandHistory.length > 0 && historyIndex > 0) {
+                    historyIndex--;
+                    commandInput.value = commandHistory[historyIndex];
+                }
+            } else if (e.key === 'ArrowDown') {
+                e.preventDefault();
+                if (historyIndex < commandHistory.length - 1) {
+                    historyIndex++;
+                    commandInput.value = commandHistory[historyIndex];
+                } else {
+                    historyIndex = commandHistory.length;
+                    commandInput.value = '';
+                }
+            } else if (e.key === 'Enter') {
+                e.preventDefault();
+                const cmd = commandInput.value;
+                commandInput.value = '';
+                processCommand(cmd);
+            }
+        });
+        
+        // 显示/隐藏光标
+        commandInput.addEventListener('focus', () => {
+            cursor.classList.remove('hidden');
+        });
+        
+        commandInput.addEventListener('blur', () => {
+            cursor.classList.add('hidden');
+        });
+        
+        // 初始显示
+        printWelcome();
+    </script>
+</body>
+</html>
