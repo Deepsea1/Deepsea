@@ -1,0 +1,53 @@
+body {
+    font-family: Arial, sans-serif;
+    background-color: #f0f0f0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    margin: 0;
+}
+
+.container {
+    text-align: center;
+}
+
+.board {
+    display: grid;
+    grid-template-columns: repeat(10, 30px);
+    grid-template-rows: repeat(10, 30px);
+    gap: 2px;
+    margin: 20px auto;
+}
+
+.cell {
+    width: 30px;
+    height: 30px;
+    background-color: #ccc;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: bold;
+}
+
+.cell.revealed {
+    background-color: #aaa;
+    cursor: default;
+}
+
+.cell.mine {
+    background-color: red;
+}
+
+.cell.flagged {
+    background-color: #ffcc00;
+}
+
+button {
+    margin-top: 20px;
+    padding: 10px 20px;
+    font-size: 16px;
+    cursor: pointer;
+}
