@@ -1,0 +1,921 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+        <li><a href="IndeX2.html" target="_blank">返回</a></li>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>智能单词记忆系统</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #4361ee;
+            --secondary-color: #3f37c9;
+            --accent-color: #4895ef;
+            --light-color: #f8f9fa;
+            --dark-color: #212529;
+            --success-color: #4bb543;
+            --danger-color: #ff3333;
+            --border-radius: 8px;
+            --box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Roboto', sans-serif;
+            line-height: 1.6;
+            color: var(--dark-color);
+            background-color: #f0f2f5;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding: 20px;
+            background-color: white;
+            border-radius: var(--border-radius);
+            box-shadow: var(--box-shadow);
+        }
+
+        h1 {
+            color: var(--primary-color);
+            margin-bottom: 10px;
+        }
+
+        .subtitle {
+            color: #6c757d;
+            font-weight: 300;
+        }
+
+        .app-container {
+            display: grid;
+            grid-template-columns: 300px 1fr;
+            gap: 20px;
+        }
+
+        .sidebar {
+            background-color: white;
+            border-radius: var(--border-radius);
+            padding: 20px;
+            box-shadow: var(--box-shadow);
+            height: fit-content;
+        }
+
+        .main-content {
+            background-color: white;
+            border-radius: var(--border-radius);
+            padding: 20px;
+            box-shadow: var(--box-shadow);
+        }
+
+        .nav-menu {
+            list-style: none;
+        }
+
+        .nav-item {
+            margin-bottom: 10px;
+        }
+
+        .nav-link {
+            display: block;
+            padding: 12px 15px;
+            color: var(--dark-color);
+            text-decoration: none;
+            border-radius: var(--border-radius);
+            transition: all 0.3s ease;
+        }
+
+        .nav-link:hover, .nav-link.active {
+            background-color: var(--primary-color);
+            color: white;
+        }
+
+        .nav-link i {
+            margin-right: 10px;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+        }
+
+        input, textarea, select {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ced4da;
+            border-radius: var(--border-radius);
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+
+        input:focus, textarea:focus, select:focus {
+            border-color: var(--primary-color);
+            outline: none;
+        }
+
+        button {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: var(--border-radius);
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 500;
+            transition: background-color 0.3s;
+        }
+
+        button:hover {
+            background-color: var(--secondary-color);
+        }
+
+        button.secondary {
+            background-color: #6c757d;
+        }
+
+        button.secondary:hover {
+            background-color: #5a6268;
+        }
+
+        button.danger {
+            background-color: var(--danger-color);
+        }
+
+        button.danger:hover {
+            background-color: #cc0000;
+        }
+
+        .word-list {
+            list-style: none;
+        }
+
+        .word-item {
+            padding: 15px;
+            border-bottom: 1px solid #e9ecef;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .word-item:last-child {
+            border-bottom: none;
+        }
+
+        .word-info {
+            flex: 1;
+        }
+
+        .word-text {
+            font-weight: 500;
+            font-size: 18px;
+            color: var(--primary-color);
+        }
+
+        .word-meaning {
+            color: #6c757d;
+            margin-top: 5px;
+        }
+
+        .word-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .word-actions button {
+            padding: 8px 12px;
+            font-size: 14px;
+        }
+
+        .quiz-container {
+            text-align: center;
+            padding: 30px;
+        }
+
+        .quiz-word {
+            font-size: 32px;
+            font-weight: 700;
+            margin-bottom: 20px;
+            color: var(--primary-color);
+        }
+
+        .quiz-options {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+
+        .quiz-option {
+            padding: 15px;
+            background-color: var(--light-color);
+            border-radius: var(--border-radius);
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .quiz-option:hover {
+            background-color: #e2e6ea;
+        }
+
+        .quiz-option.selected {
+            background-color: var(--primary-color);
+            color: white;
+        }
+
+        .quiz-feedback {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: var(--border-radius);
+            display: none;
+        }
+
+        .quiz-feedback.correct {
+            background-color: rgba(75, 181, 67, 0.2);
+            color: var(--success-color);
+            display: block;
+        }
+
+        .quiz-feedback.incorrect {
+            background-color: rgba(255, 51, 51, 0.2);
+            color: var(--danger-color);
+            display: block;
+        }
+
+        .progress-container {
+            margin-top: 30px;
+        }
+
+        .progress-bar {
+            height: 10px;
+            background-color: #e9ecef;
+            border-radius: 5px;
+            overflow: hidden;
+            margin-bottom: 10px;
+        }
+
+        .progress {
+            height: 100%;
+            background-color: var(--success-color);
+            width: 0%;
+            transition: width 0.3s;
+        }
+
+        .stats {
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .stat-item {
+            text-align: center;
+            padding: 15px;
+            background-color: var(--light-color);
+            border-radius: var(--border-radius);
+            flex: 1;
+            margin: 0 5px;
+        }
+
+        .stat-value {
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--primary-color);
+        }
+
+        .stat-label {
+            font-size: 14px;
+            color: #6c757d;
+        }
+
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255,255,255,.3);
+            border-radius: 50%;
+            border-top-color: white;
+            animation: spin 1s ease-in-out infinite;
+            margin-left: 10px;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 15px 20px;
+            background-color: var(--success-color);
+            color: white;
+            border-radius: var(--border-radius);
+            box-shadow: var(--box-shadow);
+            transform: translateX(200%);
+            transition: transform 0.3s;
+            z-index: 1000;
+        }
+
+        .notification.show {
+            transform: translateX(0);
+        }
+
+        .notification.error {
+            background-color: var(--danger-color);
+        }
+
+        @media (max-width: 768px) {
+            .app-container {
+                grid-template-columns: 1fr;
+            }
+            
+            .quiz-options {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>智能单词记忆系统</h1>
+            <p class="subtitle">利用AI技术提升你的词汇量</p>
+        </header>
+
+        <div class="app-container">
+            <div class="sidebar">
+                <ul class="nav-menu">
+                    <li class="nav-item">
+                        <a href="#" class="nav-link active" data-tab="add-word">
+                            <i>+</i> 添加单词
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="#" class="nav-link" data-tab="word-list">
+                            <i>≡</i> 单词列表
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="#" class="nav-link" data-tab="quiz">
+                            <i>?</i> 单词测试
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="#" class="nav-link" data-tab="stats">
+                            <i>📊</i> 学习统计
+                        </a>
+                    </li>
+                </ul>
+            </div>
+
+            <div class="main-content">
+                <!-- 添加单词 -->
+                <div id="add-word" class="tab-content active">
+                    <h2>添加新单词</h2>
+                    <div class="form-group">
+                        <label for="new-word">单词</label>
+                        <input type="text" id="new-word" placeholder="输入要记忆的单词">
+                    </div>
+                    <div class="form-group">
+                        <label for="word-note">备注 (可选)</label>
+                        <textarea id="word-note" rows="3" placeholder="可以添加个人记忆技巧或备注"></textarea>
+                    </div>
+                    <button id="fetch-definition">从DeepSeek获取释义</button>
+                    <div class="form-group" id="definition-container" style="display: none;">
+                        <label for="word-definition">释义</label>
+                        <textarea id="word-definition" rows="5" placeholder="单词释义将显示在这里"></textarea>
+                    </div>
+                    <button id="save-word">保存单词</button>
+                </div>
+
+                <!-- 单词列表 -->
+                <div id="word-list" class="tab-content">
+                    <h2>我的单词本</h2>
+                    <div class="form-group">
+                        <input type="text" id="search-word" placeholder="搜索单词...">
+                    </div>
+                    <ul class="word-list" id="words-container">
+                        <!-- 单词将通过JavaScript动态添加 -->
+                    </ul>
+                </div>
+
+                <!-- 单词测试 -->
+                <div id="quiz" class="tab-content">
+                    <h2>单词测试</h2>
+                    <div class="quiz-container">
+                        <div class="quiz-word" id="quiz-word">准备开始测试</div>
+                        <div class="quiz-options" id="quiz-options">
+                            <!-- 选项将通过JavaScript动态添加 -->
+                        </div>
+                        <button id="check-answer">检查答案</button>
+                        <button id="next-question" style="display: none;">下一题</button>
+                        <div class="quiz-feedback" id="quiz-feedback"></div>
+                    </div>
+                </div>
+
+                <!-- 学习统计 -->
+                <div id="stats" class="tab-content">
+                    <h2>学习统计</h2>
+                    <div class="stats">
+                        <div class="stat-item">
+                            <div class="stat-value" id="total-words">0</div>
+                            <div class="stat-label">总单词数</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-value" id="mastered-words">0</div>
+                            <div class="stat-label">已掌握</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-value" id="review-words">0</div>
+                            <div class="stat-label">需复习</div>
+                        </div>
+                    </div>
+                    <div class="progress-container">
+                        <h3>学习进度</h3>
+                        <div class="progress-bar">
+                            <div class="progress" id="learning-progress"></div>
+                        </div>
+                        <div class="stats">
+                            <div class="stat-label">已完成: <span id="progress-percent">0</span>%</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="notification" id="notification"></div>
+
+    <script>
+        // 配置DeepSeek API
+        const DEEPSEEK_API_KEY = "sk-b017542e70ae4fce9fca6828e4dd9384";
+        const DEEPSEEK_API_URL = "https://api.deepseek.com/v1/chat/completions";
+
+        // 存储单词数据
+        let words = JSON.parse(localStorage.getItem('words')) || [];
+        let currentTab = 'add-word';
+        let quizWords = [];
+        let currentQuizIndex = 0;
+        let selectedOption = null;
+        let correctAnswer = null;
+
+        // DOM元素
+        const tabLinks = document.querySelectorAll('.nav-link');
+        const tabContents = document.querySelectorAll('.tab-content');
+        const newWordInput = document.getElementById('new-word');
+        const wordNoteInput = document.getElementById('word-note');
+        const wordDefinitionInput = document.getElementById('word-definition');
+        const fetchDefinitionBtn = document.getElementById('fetch-definition');
+        const saveWordBtn = document.getElementById('save-word');
+        const definitionContainer = document.getElementById('definition-container');
+        const wordsContainer = document.getElementById('words-container');
+        const searchWordInput = document.getElementById('search-word');
+        const quizWordElement = document.getElementById('quiz-word');
+        const quizOptionsElement = document.getElementById('quiz-options');
+        const checkAnswerBtn = document.getElementById('check-answer');
+        const nextQuestionBtn = document.getElementById('next-question');
+        const quizFeedbackElement = document.getElementById('quiz-feedback');
+        const notificationElement = document.getElementById('notification');
+
+        // 初始化应用
+        function initApp() {
+            setupEventListeners();
+            renderWordList();
+            updateStats();
+        }
+
+        // 设置事件监听器
+        function setupEventListeners() {
+            // 标签切换
+            tabLinks.forEach(link => {
+                link.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    currentTab = link.dataset.tab;
+                    switchTab(currentTab);
+                });
+            });
+
+            // 获取单词释义
+            fetchDefinitionBtn.addEventListener('click', fetchWordDefinition);
+
+            // 保存单词
+            saveWordBtn.addEventListener('click', saveWord);
+
+            // 搜索单词
+            searchWordInput.addEventListener('input', renderWordList);
+
+            // 单词测试
+            checkAnswerBtn.addEventListener('click', checkAnswer);
+            nextQuestionBtn.addEventListener('click', nextQuestion);
+
+            // 初始化测试
+            if (words.length > 0) {
+                prepareQuiz();
+            }
+        }
+
+        // 切换标签页
+        function switchTab(tabId) {
+            // 更新活动标签
+            tabLinks.forEach(link => {
+                if (link.dataset.tab === tabId) {
+                    link.classList.add('active');
+                } else {
+                    link.classList.remove('active');
+                }
+            });
+
+            // 显示对应内容
+            tabContents.forEach(content => {
+                if (content.id === tabId) {
+                    content.classList.add('active');
+                    
+                    // 特殊处理某些标签页
+                    if (tabId === 'quiz' && words.length > 0) {
+                        prepareQuiz();
+                    } else if (tabId === 'word-list') {
+                        renderWordList();
+                    } else if (tabId === 'stats') {
+                        updateStats();
+                    }
+                } else {
+                    content.classList.remove('active');
+                }
+            });
+        }
+
+        // 从DeepSeek获取单词释义
+        async function fetchWordDefinition() {
+            const word = newWordInput.value.trim();
+            
+            if (!word) {
+                showNotification('请输入一个单词', 'error');
+                return;
+            }
+
+            fetchDefinitionBtn.innerHTML = '获取中 <span class="loading"></span>';
+            fetchDefinitionBtn.disabled = true;
+
+            try {
+                const response = await fetch(DEEPSEEK_API_URL, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${DEEPSEEK_API_KEY}`
+                    },
+                    body: JSON.stringify({
+                        model: "deepseek-chat",
+                        messages: [
+                            {
+                                role: "user",
+                                content: `请用中文解释英语单词"${word}"，并提供2个例句。回答格式为：
+                                释义：[单词的词性和中文释义]
+                                例句1：[例句英文] - [例句中文]
+                                例句2：[例句英文] - [例句中文]`
+                            }
+                        ],
+                        temperature: 0.3
+                    })
+                });
+
+                if (!response.ok) {
+                    throw new Error(`API请求失败: ${response.status}`);
+                }
+
+                const data = await response.json();
+                const definition = data.choices[0].message.content;
+                
+                wordDefinitionInput.value = definition;
+                definitionContainer.style.display = 'block';
+                showNotification('成功获取单词释义');
+            } catch (error) {
+                console.error('获取单词释义失败:', error);
+                showNotification(`获取释义失败: ${error.message}`, 'error');
+                wordDefinitionInput.value = '无法获取释义，请手动输入或重试。';
+                definitionContainer.style.display = 'block';
+            } finally {
+                fetchDefinitionBtn.innerHTML = '从DeepSeek获取释义';
+                fetchDefinitionBtn.disabled = false;
+            }
+        }
+
+        // 保存单词
+        function saveWord() {
+            const word = newWordInput.value.trim();
+            const note = wordNoteInput.value.trim();
+            const definition = wordDefinitionInput.value.trim();
+            
+            if (!word) {
+                showNotification('请输入一个单词', 'error');
+                return;
+            }
+
+            if (!definition) {
+                showNotification('请先获取或输入单词释义', 'error');
+                return;
+            }
+
+            // 检查单词是否已存在
+            if (words.some(w => w.word.toLowerCase() === word.toLowerCase())) {
+                showNotification('该单词已存在', 'error');
+                return;
+            }
+
+            // 添加新单词
+            const newWord = {
+                id: Date.now(),
+                word,
+                definition,
+                note,
+                createdAt: new Date().toISOString(),
+                lastReviewed: null,
+                masteryLevel: 0, // 0-未掌握, 1-熟悉, 2-掌握
+                reviewCount: 0
+            };
+
+            words.push(newWord);
+            saveWordsToLocalStorage();
+            
+            // 重置表单
+            newWordInput.value = '';
+            wordNoteInput.value = '';
+            wordDefinitionInput.value = '';
+            definitionContainer.style.display = 'none';
+            
+            showNotification('单词已保存');
+            renderWordList();
+            updateStats();
+            
+            // 如果单词数量足够，准备测试
+            if (words.length >= 4) {
+                prepareQuiz();
+            }
+        }
+
+        // 渲染单词列表
+        function renderWordList() {
+            const searchTerm = searchWordInput.value.trim().toLowerCase();
+            let filteredWords = words;
+            
+            if (searchTerm) {
+                filteredWords = words.filter(w => 
+                    w.word.toLowerCase().includes(searchTerm) || 
+                    w.definition.toLowerCase().includes(searchTerm) ||
+                    (w.note && w.note.toLowerCase().includes(searchTerm))
+                );
+            }
+            
+            wordsContainer.innerHTML = '';
+            
+            if (filteredWords.length === 0) {
+                wordsContainer.innerHTML = '<li class="word-item">没有找到单词</li>';
+                return;
+            }
+            
+            filteredWords.forEach(word => {
+                const wordItem = document.createElement('li');
+                wordItem.className = 'word-item';
+                
+                const masteryClass = word.masteryLevel === 2 ? 'mastered' : word.masteryLevel === 1 ? 'familiar' : 'new';
+                
+                wordItem.innerHTML = `
+                    <div class="word-info">
+                        <div class="word-text">${word.word}</div>
+                        <div class="word-meaning">${word.definition.split('\n')[0]}</div>
+                    </div>
+                    <div class="word-actions">
+                        <button class="secondary" data-id="${word.id}" data-action="edit">编辑</button>
+                        <button class="danger" data-id="${word.id}" data-action="delete">删除</button>
+                    </div>
+                `;
+                
+                wordsContainer.appendChild(wordItem);
+            });
+            
+            // 添加编辑和删除事件
+            document.querySelectorAll('[data-action="edit"]').forEach(btn => {
+                btn.addEventListener('click', () => editWord(parseInt(btn.dataset.id)));
+            });
+            
+            document.querySelectorAll('[data-action="delete"]').forEach(btn => {
+                btn.addEventListener('click', () => deleteWord(parseInt(btn.dataset.id)));
+            });
+        }
+
+        // 编辑单词
+        function editWord(id) {
+            const word = words.find(w => w.id === id);
+            if (!word) return;
+            
+            switchTab('add-word');
+            newWordInput.value = word.word;
+            wordNoteInput.value = word.note || '';
+            wordDefinitionInput.value = word.definition;
+            definitionContainer.style.display = 'block';
+            
+            // 删除旧单词
+            words = words.filter(w => w.id !== id);
+            saveWordsToLocalStorage();
+            renderWordList();
+            updateStats();
+        }
+
+        // 删除单词
+        function deleteWord(id) {
+            if (confirm('确定要删除这个单词吗？')) {
+                words = words.filter(w => w.id !== id);
+                saveWordsToLocalStorage();
+                renderWordList();
+                updateStats();
+                showNotification('单词已删除');
+                
+                // 如果单词数量不足，重置测试
+                if (words.length < 4) {
+                    quizWordElement.textContent = '单词数量不足(至少需要4个)，请添加更多单词';
+                    quizOptionsElement.innerHTML = '';
+                    checkAnswerBtn.style.display = 'none';
+                } else {
+                    prepareQuiz();
+                }
+            }
+        }
+
+        // 准备测试
+        function prepareQuiz() {
+            if (words.length < 4) {
+                quizWordElement.textContent = '单词数量不足(至少需要4个)，请添加更多单词';
+                quizOptionsElement.innerHTML = '';
+                checkAnswerBtn.style.display = 'none';
+                return;
+            }
+            
+            // 选择需要复习的单词优先
+            const wordsToQuiz = [...words]
+                .sort((a, b) => a.masteryLevel - b.masteryLevel || (a.lastReviewed || 0) - (b.lastReviewed || 0))
+                .slice(0, Math.min(10, words.length));
+            
+            quizWords = shuffleArray(wordsToQuiz);
+            currentQuizIndex = 0;
+            showNextQuestion();
+        }
+
+        // 显示下一个问题
+        function showNextQuestion() {
+            if (currentQuizIndex >= quizWords.length) {
+                quizWordElement.textContent = '测试完成！';
+                quizOptionsElement.innerHTML = '';
+                checkAnswerBtn.style.display = 'none';
+                nextQuestionBtn.style.display = 'none';
+                quizFeedbackElement.style.display = 'none';
+                return;
+            }
+            
+            const currentWord = quizWords[currentQuizIndex];
+            correctAnswer = currentWord.definition.split('\n')[0].split('释义:')[1] || currentWord.definition.split('\n')[0];
+            
+            // 获取3个错误选项
+            const otherWords = words.filter(w => w.id !== currentWord.id);
+            const wrongOptions = shuffleArray([...otherWords])
+                .slice(0, 3)
+                .map(w => w.definition.split('\n')[0].split('释义:')[1] || w.definition.split('\n')[0]);
+            
+            // 合并选项并打乱顺序
+            const allOptions = shuffleArray([correctAnswer, ...wrongOptions]);
+            
+            // 显示问题和选项
+            quizWordElement.textContent = currentWord.word;
+            quizOptionsElement.innerHTML = '';
+            
+            allOptions.forEach((option, index) => {
+                const optionElement = document.createElement('div');
+                optionElement.className = 'quiz-option';
+                optionElement.textContent = option;
+                optionElement.dataset.index = index;
+                optionElement.addEventListener('click', selectOption);
+                quizOptionsElement.appendChild(optionElement);
+            });
+            
+            // 重置UI状态
+            selectedOption = null;
+            quizFeedbackElement.className = 'quiz-feedback';
+            quizFeedbackElement.style.display = 'none';
+            checkAnswerBtn.style.display = 'block';
+            nextQuestionBtn.style.display = 'none';
+        }
+
+        // 选择选项
+        function selectOption(e) {
+            // 移除之前的选择
+            document.querySelectorAll('.quiz-option').forEach(opt => {
+                opt.classList.remove('selected');
+            });
+            
+            // 添加新选择
+            e.target.classList.add('selected');
+            selectedOption = e.target.textContent;
+        }
+
+        // 检查答案
+        function checkAnswer() {
+            if (!selectedOption) {
+                showNotification('请选择一个答案', 'error');
+                return;
+            }
+            
+            const currentWord = quizWords[currentQuizIndex];
+            const isCorrect = selectedOption === correctAnswer;
+            
+            // 更新单词掌握程度
+            currentWord.reviewCount += 1;
+            currentWord.lastReviewed = new Date().toISOString();
+            
+            if (isCorrect) {
+                currentWord.masteryLevel = Math.min(2, currentWord.masteryLevel + 1);
+                quizFeedbackElement.textContent = '正确！';
+                quizFeedbackElement.className = 'quiz-feedback correct';
+            } else {
+                currentWord.masteryLevel = Math.max(0, currentWord.masteryLevel - 1);
+                quizFeedbackElement.textContent = `错误！正确答案是: ${correctAnswer}`;
+                quizFeedbackElement.className = 'quiz-feedback incorrect';
+            }
+            
+            quizFeedbackElement.style.display = 'block';
+            checkAnswerBtn.style.display = 'none';
+            nextQuestionBtn.style.display = 'block';
+            
+            // 保存更新
+            saveWordsToLocalStorage();
+            updateStats();
+        }
+
+        // 下一题
+        function nextQuestion() {
+            currentQuizIndex += 1;
+            showNextQuestion();
+        }
+
+        // 更新统计信息
+        function updateStats() {
+            document.getElementById('total-words').textContent = words.length;
+            document.getElementById('mastered-words').textContent = words.filter(w => w.masteryLevel === 2).length;
+            document.getElementById('review-words').textContent = words.filter(w => w.masteryLevel < 1).length;
+            
+            // 计算学习进度
+            const masteredCount = words.filter(w => w.masteryLevel === 2).length;
+            const progress = words.length > 0 ? Math.round((masteredCount / words.length) * 100) : 0;
+            document.getElementById('learning-progress').style.width = `${progress}%`;
+            document.getElementById('progress-percent').textContent = progress;
+        }
+
+        // 显示通知
+        function showNotification(message, type = 'success') {
+            notificationElement.textContent = message;
+            notificationElement.className = `notification ${type}`;
+            notificationElement.classList.add('show');
+            
+            setTimeout(() => {
+                notificationElement.classList.remove('show');
+            }, 3000);
+        }
+
+        // 辅助函数：打乱数组顺序
+        function shuffleArray(array) {
+            const newArray = [...array];
+            for (let i = newArray.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [newArray[i], newArray[j]] = [newArray[j], newArray[i]];
+            }
+            return newArray;
+        }
+
+        // 保存单词到本地存储
+        function saveWordsToLocalStorage() {
+            localStorage.setItem('words', JSON.stringify(words));
+        }
+
+        // 初始化应用
+        document.addEventListener('DOMContentLoaded', initApp);
+    </script>
+</body>
+</html>
