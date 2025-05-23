@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+        <li><a href="index2.html" target="_blank">返回官网</a></li>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>火柴人游戏</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: #f0f0f0;
+            font-family: Arial, sans-serif;
+        }
+        #gameCanvas {
+            border: 2px solid #333;
+            background-color: #fff;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+        }
+        #instructions {
+            position: absolute;
+            top: 10px;
+            text-align: center;
+            color: #333;
+        }
+    </style>
+</head>
+<body>
+    <div id="instructions">
+        <h2>火柴人游戏</h2>
+        <p>使用方向键移动，空格键跳跃</p>
+    </div>
+    <canvas id="gameCanvas" width="600" height="400"></canvas>
+
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        
+        // 游戏状态
+        const game = {
+            stickMan: {
+                x: 100,
+                y: 300,
+                width: 20,
+                height: 40,
+                speed: 3,
+                jumpPower: 10,
+                isJumping: false,
+                velocityY: 0,
+                gravity: 0.5
+            },
+            platforms: [
+                {x: 0, y: 350, width: 200, height: 20},
+                {x: 250, y: 300, width: 150, height: 20},
+                {x: 450, y: 250, width: 150, height: 20}
+            ],
+            keys: {
+                left: false,
+                right: false,
+                up: false
+            },
+            score: 0
+        };
+        
+        // 键盘控制
+        window.addEventListener('keydown', (e) => {
+            switch(e.key) {
+                case 'ArrowLeft':
+                    game.keys.left = true;
+                    break;
+                case 'ArrowRight':
+                    game.keys.right = true;
+                    break;
+                case 'ArrowUp':
+                case ' ':
+                    if (!game.stickMan.isJumping) {
+                        game.stickMan.isJumping = true;
+                        game.stickMan.velocityY = -game.stickMan.jumpPower;
+                    }
+                    break;
+            }
+        });
+        
+        window.addEventListener('keyup', (e) => {
+            switch(e.key) {
+                case 'ArrowLeft':
+                    game.keys.left = false;
+                    break;
+                case 'ArrowRight':
+                    game.keys.right = false;
+                    break;
+                case 'ArrowUp':
+                case ' ':
+                    game.keys.up = false;
+                    break;
+            }
+        });
+        
+        // 绘制火柴人
+        function drawStickMan() {
+            ctx.beginPath();
+            
+            // 头部
+            ctx.arc(game.stickMan.x, game.stickMan.y - 30, 10, 0, Math.PI * 2);
+            
+            // 身体
+            ctx.moveTo(game.stickMan.x, game.stickMan.y - 20);
+            ctx.lineTo(game.stickMan.x, game.stickMan.y);
+            
+            // 手臂
+            ctx.moveTo(game.stickMan.x - 15, game.stickMan.y - 15);
+            ctx.lineTo(game.stickMan.x + 15, game.stickMan.y - 15);
+            
+            // 腿
+            ctx.moveTo(game.stickMan.x, game.stickMan.y);
+            ctx.lineTo(game.stickMan.x - 10, game.stickMan.y + 20);
+            ctx.moveTo(game.stickMan.x, game.stickMan.y);
+            ctx.lineTo(game.stickMan.x + 10, game.stickMan.y + 20);
+            
+            ctx.strokeStyle = '#000';
+            ctx.lineWidth = 2;
+            ctx.stroke();
+        }
+        
+        // 绘制平台
+        function drawPlatforms() {
+            ctx.fillStyle = '#8B4513'; // 棕色平台
+            game.platforms.forEach(platform => {
+                ctx.fillRect(platform.x, platform.y, platform.width, platform.height);
+            });
+        }
+        
+        // 碰撞检测
+        function checkCollision() {
+            let onPlatform = false;
+            
+            game.platforms.forEach(platform => {
+                // 检查是否站在平台上
+                if (game.stickMan.x + game.stickMan.width > platform.x && 
+                    game.stickMan.x < platform.x + platform.width &&
+                    game.stickMan.y + game.stickMan.height >= platform.y && 
+                    game.stickMan.y + game.stickMan.height <= platform.y + 10 &&
+                    game.stickMan.velocityY >= 0) {
+                    
+                    game.stickMan.y = platform.y - game.stickMan.height;
+                    game.stickMan.isJumping = false;
+                    game.stickMan.velocityY = 0;
+                    onPlatform = true;
+                }
+            });
+            
+            // 如果没有站在任何平台上，则应用重力
+            if (!onPlatform) {
+                game.stickMan.isJumping = true;
+            }
+        }
+        
+        // 更新游戏状态
+        function update() {
+            // 移动火柴人
+            if (game.keys.left) {
+                game.stickMan.x -= game.stickMan.speed;
+                if (game.stickMan.x < 0) game.stickMan.x = 0;
+            }
+            if (game.keys.right) {
+                game.stickMan.x += game.stickMan.speed;
+                if (game.stickMan.x > canvas.width - game.stickMan.width) {
+                    game.stickMan.x = canvas.width - game.stickMan.width;
+                }
+            }
+            
+            // 跳跃和重力
+            if (game.stickMan.isJumping) {
+                game.stickMan.y += game.stickMan.velocityY;
+                game.stickMan.velocityY += game.stickMan.gravity;
+            }
+            
+            // 检查是否掉出屏幕
+            if (game.stickMan.y > canvas.height) {
+                // 重置位置
+                game.stickMan.y = 100;
+                game.stickMan.x = 100;
+                game.stickMan.velocityY = 0;
+                game.score = 0;
+            }
+            
+            checkCollision();
+            
+            // 简单计分 - 每帧存活得1分
+            game.score += 1;
+        }
+        
+        // 绘制游戏
+        function draw() {
+            // 清空画布
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            // 绘制背景
+            ctx.fillStyle = '#87CEEB'; // 天蓝色背景
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            // 绘制平台
+            drawPlatforms();
+            
+            // 绘制火柴人
+            drawStickMan();
+            
+            // 绘制分数
+            ctx.fillStyle = '#000';
+            ctx.font = '20px Arial';
+            ctx.fillText('分数: ' + game.score, 20, 30);
+        }
+        
+        // 游戏循环
+        function gameLoop() {
+            update();
+            draw();
+            requestAnimationFrame(gameLoop);
+        }
+        
+        // 开始游戏
+        gameLoop();
+    </script>
+</body>
+</html>
