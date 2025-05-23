@@ -1,0 +1,355 @@
+
+<!DOCTYPE html>
+<html lang="en">
+        <li><a href="IndeX2.html" target="_blank">返回</a></li>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Backrooms手机</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            background-color: #000;
+            touch-action: none;
+            -webkit-touch-callout: none;
+            -webkit-user-select: none;
+            user-select: none;
+        }
+        
+        #gameContainer {
+            position: relative;
+            width: 100vw;
+            height: 100vh;
+        }
+        
+        #gameCanvas {
+            width: 100%;
+            height: 100%;
+            display: block;
+        }
+        
+        #controls {
+            position: absolute;
+            bottom: 20px;
+            width: 100%;
+            display: flex;
+            justify-content: space-between;
+            padding: 0 20px;
+            box-sizing: border-box;
+        }
+        
+        .joystick {
+            width: 120px;
+            height: 120px;
+            background-color: rgba(255, 255, 255, 0.2);
+            border-radius: 50%;
+            position: relative;
+        }
+        
+        .joystick-inner {
+            width: 60px;
+            height: 60px;
+            background-color: rgba(255, 255, 255, 0.5);
+            border-radius: 50%;
+            position: absolute;
+            top: 30px;
+            left: 30px;
+        }
+        
+        #actionBtn {
+            width: 80px;
+            height: 80px;
+            background-color: rgba(255, 0, 0, 0.3);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 16px;
+        }
+    </style>
+</head>
+<body>
+    <div id="gameContainer">
+        <canvas id="gameCanvas"></canvas>
+        <div id="controls">
+            <div class="joystick" id="movementJoystick">
+                <div class="joystick-inner"></div>
+            </div>
+            <div id="actionBtn">疾跑</div>
+        </div>
+    </div>
+
+    <script>
+        // Game canvas setup
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        
+        // Set canvas to full window size
+        function resizeCanvas() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+        
+        window.addEventListener('resize', resizeCanvas);
+        resizeCanvas();
+        
+        // Game state
+        const gameState = {
+            player: {
+                x: 0,
+                y: 0,
+                angle: 0,
+                speed: 0
+            },
+            camera: {
+                x: 0,
+                y: 0
+            },
+            map: [],
+            keys: {
+                up: false,
+                down: false,
+                left: false,
+                right: false,
+                run: false
+            }
+        };
+        
+        // Mobile controls
+        const movementJoystick = document.getElementById('movementJoystick');
+        const joystickInner = movementJoystick.querySelector('.joystick-inner');
+        const actionBtn = document.getElementById('actionBtn');
+        
+        let joystickActive = false;
+        let joystickStartX = 0;
+        let joystickStartY = 0;
+        let joystickCenterX = 0;
+        let joystickCenterY = 0;
+        
+        // Initialize joystick position
+        function initJoystickPosition() {
+            const rect = movementJoystick.getBoundingClientRect();
+            joystickCenterX = rect.left + rect.width / 2;
+            joystickCenterY = rect.top + rect.height / 2;
+            joystickStartX = joystickCenterX;
+            joystickStartY = joystickCenterY;
+        }
+        
+        // Touch start
+        movementJoystick.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            joystickActive = true;
+            initJoystickPosition();
+            updateJoystick(e.touches[0].clientX, e.touches[0].clientY);
+        });
+        
+        // Touch move
+        document.addEventListener('touchmove', (e) => {
+            if (joystickActive) {
+                e.preventDefault();
+                updateJoystick(e.touches[0].clientX, e.touches[0].clientY);
+            }
+        }, { passive: false });
+        
+        // Touch end
+        document.addEventListener('touchend', (e) => {
+            if (joystickActive) {
+                joystickActive = false;
+                resetJoystick();
+            }
+        });
+        
+        // Update joystick position and game controls
+        function updateJoystick(touchX, touchY) {
+            const dx = touchX - joystickCenterX;
+            const dy = touchY - joystickCenterY;
+            const distance = Math.sqrt(dx * dx + dy * dy);
+            const maxDistance = 60;
+            
+            if (distance > maxDistance) {
+                const angle = Math.atan2(dy, dx);
+                const limitedX = joystickCenterX + Math.cos(angle) * maxDistance;
+                const limitedY = joystickCenterY + Math.sin(angle) * maxDistance;
+                joystickInner.style.transform = `translate(${limitedX - joystickStartX}px, ${limitedY - joystickStartY}px)`;
+            } else {
+                joystickInner.style.transform = `translate(${dx}px, ${dy}px)`;
+            }
+            
+            // Update movement controls based on joystick position
+            const angle = Math.atan2(dy, dx);
+            const deadZone = 20;
+            
+            if (distance > deadZone) {
+                // Determine direction based on angle
+                if (angle > -Math.PI/4 && angle < Math.PI/4) {
+                    // Right
+                    gameState.keys.right = true;
+                    gameState.keys.left = false;
+                    gameState.keys.up = false;
+                    gameState.keys.down = false;
+                } else if (angle > Math.PI/4 && angle < 3*Math.PI/4) {
+                    // Down
+                    gameState.keys.down = true;
+                    gameState.keys.up = false;
+                    gameState.keys.left = false;
+                    gameState.keys.right = false;
+                } else if (angle > 3*Math.PI/4 || angle < -3*Math.PI/4) {
+                    // Left
+                    gameState.keys.left = true;
+                    gameState.keys.right = false;
+                    gameState.keys.up = false;
+                    gameState.keys.down = false;
+                } else {
+                    // Up
+                    gameState.keys.up = true;
+                    gameState.keys.down = false;
+                    gameState.keys.left = false;
+                    gameState.keys.right = false;
+                }
+                
+                // Speed based on distance
+                gameState.player.speed = Math.min(1, (distance - deadZone) / (maxDistance - deadZone));
+            } else {
+                // Reset movement if in dead zone
+                gameState.keys.up = false;
+                gameState.keys.down = false;
+                gameState.keys.left = false;
+                gameState.keys.right = false;
+                gameState.player.speed = 0;
+            }
+        }
+        
+        // Reset joystick to center
+        function resetJoystick() {
+            joystickInner.style.transform = 'translate(0, 0)';
+            gameState.keys.up = false;
+            gameState.keys.down = false;
+            gameState.keys.left = false;
+            gameState.keys.right = false;
+            gameState.player.speed = 0;
+        }
+        
+        // Action button (run)
+        actionBtn.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            gameState.keys.run = true;
+        });
+        
+        actionBtn.addEventListener('touchend', (e) => {
+            e.preventDefault();
+            gameState.keys.run = false;
+        });
+        
+        // Update camera to follow player smoothly
+        function updateCamera() {
+            // Smooth camera follow with lerp
+            const lerpFactor = 0.1;
+            gameState.camera.x += (gameState.player.x - gameState.camera.x) * lerpFactor;
+            gameState.camera.y += (gameState.player.y - gameState.camera.y) * lerpFactor;
+        }
+        
+        // Game loop
+        function gameLoop() {
+            // Update game state
+            updateGame();
+            
+            // Update camera
+            updateCamera();
+            
+            // Render game
+            renderGame();
+            
+            // Request next frame
+            requestAnimationFrame(gameLoop);
+        }
+        
+        // Update game state
+        function updateGame() {
+            // Update player position based on controls
+            const moveSpeed = 3 * gameState.player.speed * (gameState.keys.run ? 1.5 : 1);
+            
+            if (gameState.keys.up) {
+                gameState.player.y -= moveSpeed;
+            }
+            if (gameState.keys.down) {
+                gameState.player.y += moveSpeed;
+            }
+            if (gameState.keys.left) {
+                gameState.player.x -= moveSpeed;
+                gameState.player.angle = Math.PI;
+            }
+            if (gameState.keys.right) {
+                gameState.player.x += moveSpeed;
+                gameState.player.angle = 0;
+            }
+            
+            // Boundary checking (larger map since camera follows)
+            gameState.player.x = Math.max(-2000, Math.min(2000, gameState.player.x));
+            gameState.player.y = Math.max(-2000, Math.min(2000, gameState.player.y));
+        }
+        
+        // Render game
+        function renderGame() {
+            // Clear canvas
+            ctx.fillStyle = '#111';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            // Draw with camera offset
+            ctx.save();
+            
+            // Center the camera on the player
+            ctx.translate(canvas.width / 2 - gameState.camera.x, canvas.height / 2 - gameState.camera.y);
+            
+            // Draw floor (larger area since camera moves)
+            ctx.fillStyle = '#f5e9c3';
+            ctx.fillRect(-2500, -2500, 5000, 5000);
+            
+            // Draw walls grid pattern
+            ctx.fillStyle = '#e0d5b8';
+            const wallSpacing = 200;
+            const wallCount = 25;
+            
+            // Horizontal walls
+            for (let i = -wallCount; i <= wallCount; i++) {
+                ctx.fillRect(-2500, i * wallSpacing - 10, 5000, 20);
+            }
+            
+            // Vertical walls
+            for (let i = -wallCount; i <= wallCount; i++) {
+                ctx.fillRect(i * wallSpacing - 10, -2500, 20, 5000);
+            }
+            
+            // Draw player
+            ctx.save();
+            ctx.translate(gameState.player.x, gameState.player.y);
+            ctx.rotate(gameState.player.angle);
+            
+            // Player body
+            ctx.fillStyle = '#f00';
+            ctx.fillRect(-15, -10, 30, 20);
+            
+            // Player direction indicator
+            ctx.fillStyle = '#ff0';
+            ctx.fillRect(10, -5, 10, 10);
+            
+            ctx.restore();
+            
+            ctx.restore();
+            
+            // Draw debug info
+            ctx.fillStyle = '#fff';
+            ctx.font = '16px Arial';
+            ctx.fillText(`Position: ${gameState.player.x.toFixed(1)}, ${gameState.player.y.toFixed(1)}`, 10, 20);
+            ctx.fillText(`Speed: ${(gameState.player.speed * 100).toFixed(0)}%`, 10, 40);
+            ctx.fillText(`Running: ${gameState.keys.run ? 'YES' : 'NO'}`, 10, 60);
+            ctx.fillText(`Camera: ${gameState.camera.x.toFixed(1)}, ${gameState.camera.y.toFixed(1)}`, 10, 80);
+        }
+        
+        // Start game
+        gameLoop();
+    </script>
+</body>
+</html>
