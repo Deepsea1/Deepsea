@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+        <li><a href="index2.html" target="_blank">返回官网</a></li>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>我的世界手机</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f0f0f0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+        }
+        .container {
+            width: 100%;
+            max-width: 1000px;
+            text-align: center;
+        }
+        #startButton {
+            padding: 15px 30px;
+            font-size: 20px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            margin: 20px 0;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+        #startButton:hover {
+            background-color: #45a049;
+        }
+        #gameContainer {
+            width: 100%;
+            max-width: 800px;
+            margin: 0 auto;
+            position: relative;
+            overflow: hidden;
+            border-radius: 10px;
+            box-shadow: 0 8px 16px rgba(0,0,0,0.2);
+            display: none;
+            background: #000;
+        }
+        #gameFrame {
+            width: 100%;
+            height: 100%;
+            border: none;
+            display: block;
+        }
+        h1 {
+            color: #333;
+            margin: 20px 0;
+            font-size: 28px;
+        }
+        .rotate-message {
+            display: none;
+            padding: 15px;
+            background: #ffeb3b;
+            color: #333;
+            border-radius: 5px;
+            margin: 15px 0;
+            font-weight: bold;
+            max-width: 800px;
+        }
+        @media (max-width: 600px) {
+            .rotate-message {
+                display: block;
+            }
+            #gameContainer {
+                max-width: 100%;
+                height: 60vh;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        
+      
+        <button id="startButton">点击开始MC (加载需要时间)</button>
+        <div id="gameContainer">
+            <iframe id="gameFrame" src="" allowfullscreen></iframe>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('startButton').addEventListener('click', function() {
+            const gameContainer = document.getElementById('gameContainer');
+            const gameFrame = document.getElementById('gameFrame');
+            
+            // 显示加载提示
+            this.textContent = "正在加载游戏，请稍候...";
+            this.style.backgroundColor = "#ff9800";
+            
+            // 设置游戏容器比例 (16:9)
+            const setContainerSize = () => {
+                const containerWidth = Math.min(800, window.innerWidth - 40);
+                gameContainer.style.width = containerWidth + 'px';
+                gameContainer.style.height = (containerWidth * 9 / 16) + 'px';
+            };
+            
+            // 设置游戏源
+            gameFrame.src = 'https://www.mc.js.cool/mc/1.8touch/';
+            gameContainer.style.display = 'block';
+            
+            // 初始化容器大小
+            setContainerSize();
+            window.addEventListener('resize', setContainerSize);
+            
+            // 游戏加载完成后
+            gameFrame.onload = function() {
+                document.getElementById('startButton').style.display = 'none';
+                
+                // 尝试全屏（需要用户手势）
+                try {
+                    if(gameContainer.requestFullscreen) {
+                        gameContainer.requestFullscreen();
+                    } else if(gameContainer.webkitRequestFullscreen) {
+                        gameContainer.webkitRequestFullscreen();
+                    }
+                } catch(e) {
+                    console.log("全屏模式失败:", e);
+                }
+            };
+        });
+        
+        // 检测屏幕方向
+        function checkOrientation() {
+            const message = document.querySelector('.rotate-message');
+            if(window.innerHeight > window.innerWidth) {
+                message.style.display = 'block';
+            } else {
+                message.style.display = 'none';
+            }
+        }
+        
+        // 监听屏幕方向变化
+        window.addEventListener('resize', checkOrientation);
+        checkOrientation();
+    </script>
+</body>
+</html>
